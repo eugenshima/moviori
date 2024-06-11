@@ -42,7 +42,10 @@ func main() {
 	hnd := handlers.NewAuthHandler(srv)
 
 	auth := e.Group("/auth")
-	auth.POST("/login", hnd.Login)
+	{
+		auth.POST("/login", hnd.Login)
+		auth.POST("/signup", hnd.Signup)
+	}
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

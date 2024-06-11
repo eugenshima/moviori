@@ -19,7 +19,7 @@ func NewAuthRepository(pool *pgxpool.Pool) *AuthRepository {
 	return &AuthRepository{pool: pool}
 }
 
-func (db *AuthRepository) InsertUser(ctx context.Context, auth *model.AuthModel) error {
+func (db *AuthRepository) InsertNewUser(ctx context.Context, NewUser *model.HashedLogin) error {
 	tx, err := db.pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: "repeatable read"})
 	if err != nil {
 		return fmt.Errorf("BeginTx: %w", err)
@@ -42,7 +42,7 @@ func (db *AuthRepository) InsertUser(ctx context.Context, auth *model.AuthModel)
 
 	id := uuid.New()
 
-	execTag, err := tx.Exec(ctx, "INSERT INTO moviori_profile.auth VALUES($1, $2, $3)", id, auth.Login, auth.Password)
+	execTag, err := tx.Exec(ctx, "INSERT INTO moviori_profile.auth VALUES($1, $2, $3)", id, NewUser.Login, NewUser.Password)
 	if err != nil || execTag.RowsAffected() == 0 {
 		return fmt.Errorf("exec: %w", err)
 	}
@@ -77,4 +77,34 @@ func (db *AuthRepository) GetUserByID(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (db *AuthRepository) GetUserByLogin(ctx context.Context, login string) (*model.FullUserModel, error) {
+	tx, err := db.pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: "repeatable read"})
+	if err != nil {
+		return nil, fmt.Errorf("BeginTx: %w", err)
+	}
+	defer func() {
+		if err != nil {
+			err = tx.Rollback(ctx)
+			if err != nil {
+				logrus.Errorf("Rollback: %v", err)
+				return
+			}
+		} else {
+			err = tx.Commit(ctx)
+			if err != nil {
+				logrus.Errorf("Commit: %v", err)
+				return
+			}
+		}
+	}()
+
+	user := &model.FullUserModel{}
+
+	err = tx.QueryRow(ctx, "SELECT id, login, password FROM moviori_profile.auth ").Scan(&user.Id, &user.Login, &user.Password)
+	if err != nil {
+		return nil, fmt.Errorf("QueryRow(): %w", err)
+	}
+	return user, nil
 }
