@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/eugenshima/moviori/internal/model"
@@ -28,7 +27,7 @@ func (hnd *AuthHandler) Login(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusBadRequest, "bad request")
 	}
-	fmt.Println("working - ", user.Login, user.Password)
+
 	err = hnd.handlr.LoginService(context.Background(), user)
 	if err != nil {
 		return c.String(http.StatusNotAcceptable, "Wrong password")
@@ -42,10 +41,10 @@ func (hnd *AuthHandler) Signup(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusBadRequest, "bad request")
 	}
-	fmt.Println("working - ", user.Login, user.Password)
+
 	err = hnd.handlr.SignupService(context.Background(), user)
 	if err != nil {
-		return c.String(http.StatusBadRequest, "bad request")
+		return c.String(http.StatusNotAcceptable, "bad request")
 	}
-	return nil
+	return c.String(http.StatusOK, "Account has been created")
 }

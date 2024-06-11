@@ -102,7 +102,7 @@ func (db *AuthRepository) GetUserByLogin(ctx context.Context, login string) (*mo
 
 	user := &model.FullUserModel{}
 
-	err = tx.QueryRow(ctx, "SELECT id, login, password FROM moviori_profile.auth ").Scan(&user.Id, &user.Login, &user.Password)
+	err = tx.QueryRow(ctx, "SELECT id, login, password FROM moviori_profile.auth WHERE login=$1", login).Scan(&user.Id, &user.Login, &user.Password)
 	if err != nil {
 		return nil, fmt.Errorf("QueryRow(): %w", err)
 	}

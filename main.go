@@ -47,5 +47,10 @@ func main() {
 		auth.POST("/signup", hnd.Signup)
 	}
 
+	/*profile := e.Group("/profile")
+	{
+		profile.PATCH("/update-profile")
+	}*/
+
 	e.Logger.Fatal(e.Start(":8080"))
 }
