@@ -22,16 +22,16 @@ type AuthRepositoryInterface interface {
 	GetUserByLogin(ctx context.Context, login string) (*model.FullUserModel, error)
 }
 
-func (s *AuthService) LoginService(ctx context.Context, login *model.UserModel) error {
+func (s *AuthService) LoginService(ctx context.Context, login *model.UserModel) (*model.FullUserModel, error) {
 	user, err := s.srv.GetUserByLogin(ctx, login.Login)
 	if err != nil {
-		return fmt.Errorf("GetUserByLogin: %w", err)
+		return nil, fmt.Errorf("GetUserByLogin: %w", err)
 	}
 	isRight := CheckPasswordHash(login.Password, user.Password)
 	if !isRight {
-		return fmt.Errorf("CheckPasswordHash: wrong password")
+		return nil, fmt.Errorf("CheckPasswordHash: wrong password")
 	}
-	return nil
+	return user, nil
 }
 
 func (s *AuthService) SignupService(ctx context.Context, signup *model.UserModel) error {

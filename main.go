@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/labstack/echo/v4"
-	"github.com/sirupsen/logrus"
-
 	"github.com/eugenshima/moviori/internal/handlers"
 	repo "github.com/eugenshima/moviori/internal/repository"
 	"github.com/eugenshima/moviori/internal/service"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 )
 
 func PgxConnection(Url string) (*pgxpool.Pool, error) {
@@ -47,10 +47,11 @@ func main() {
 		auth.POST("/signup", hnd.Signup)
 	}
 
-	/*profile := e.Group("/profile")
-	{
-		profile.PATCH("/update-profile")
-	}*/
+	// profile := e.Group("/profile")
+	// {
+	// 	profile.GET("/get-profile")
+	// 	profile.PATCH("/update-profile")
+	// }
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
