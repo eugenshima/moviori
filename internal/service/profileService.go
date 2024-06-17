@@ -9,17 +9,33 @@ import (
 )
 
 type AuthService struct {
-	srv AuthRepositoryInterface
+	srv  AuthRepositoryInterface
+	msrv MovieRepositoryInterface
 }
 
-func NewAuthService(srv AuthRepositoryInterface) *AuthService {
-	return &AuthService{srv: srv}
+func NewAuthService(srv AuthRepositoryInterface, msrv MovieRepositoryInterface) *AuthService {
+	return &AuthService{
+		srv:  srv,
+		msrv: msrv,
+	}
 }
 
 type AuthRepositoryInterface interface {
 	InsertNewUser(ctx context.Context, auth *model.HashedLogin) error
 	GetUserByID(ctx context.Context) error
 	GetUserByLogin(ctx context.Context, login string) (*model.FullUserModel, error)
+}
+
+type MovieRepositoryInterface interface {
+	FindByName(context.Context, string) (*model.FinalMovie, error)
+}
+
+func (s *AuthService) GetMovieByName(ctx context.Context, id string) (*model.FinalMovie, error) {
+	movie, err := s.msrv.FindByName(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("FindByName: %w", err)
+	}
+	return movie, nil
 }
 
 func (s *AuthService) LoginService(ctx context.Context, login *model.UserModel) (*model.FullUserModel, error) {

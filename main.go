@@ -7,6 +7,8 @@ import (
 	"github.com/eugenshima/moviori/internal/handlers"
 	repo "github.com/eugenshima/moviori/internal/repository"
 	"github.com/eugenshima/moviori/internal/service"
+	movieProto "github.com/eugenshima/moviori_movies/proto"
+	"google.golang.org/grpc"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
@@ -37,14 +39,33 @@ func main() {
 		logrus.Printf("Failed to connect PotgreSQL: %v", err)
 	}
 
+	MovieConn, err := grpc.Dial(":8081", grpc.WithInsecure())
+	if err != nil {
+		return
+	}
+	defer func() {
+		err = MovieConn.Close()
+		if err != nil {
+			fmt.Println("error closing price service connection")
+		}
+	}()
+
+	movieCLient := movieProto.NewMovioriMoviesClient(MovieConn)
+
 	rps := repo.NewAuthRepository(dbpool)
-	srv := service.NewAuthService(rps)
+	rpsm := repo.NewMovieRepository(movieCLient)
+	srv := service.NewAuthService(rps, rpsm)
 	hnd := handlers.NewAuthHandler(srv)
 
 	auth := e.Group("/auth")
 	{
 		auth.POST("/login", hnd.Login)
 		auth.POST("/signup", hnd.Signup)
+	}
+
+	movies := e.Group("/movies")
+	{
+		movies.POST("/getbyid", hnd.GetMovieByName)
 	}
 
 	// profile := e.Group("/profile")
